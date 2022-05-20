@@ -1,0 +1,25 @@
+version: "3.7"
+services:
+  db:
+    image: postgres:12.10-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+
+  backend:
+    build: .
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    depends_on:
+      - db
+    command: bash -c "while !</dev/tcp/db/5432; do sleep 1; done; python manage.py migrate --skip-checks; python manage.py runserver 0.0.0.0:8000;"
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
